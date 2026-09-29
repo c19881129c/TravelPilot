@@ -24,50 +24,11 @@ jobs:
           flutter-version: '3.22.2'
           channel: 'stable'
 
-      - name: Generate Clean Android Platform
+      - name: Setup Android Project
         run: |
           rm -rf android
           flutter create --platforms=android --project-name travel_pilot --org com.travelpilot .
-          python3 -c "
-          import os
-
-          # 1. 補齊權限與地圖啟動設定
-          m_path = 'android/app/src/main/AndroidManifest.xml'
-          if os.path.exists(m_path):
-              with open(m_path, 'r') as f: c = f.read()
-              perms = '<uses-permission android:name=\"android.permission.INTERNET\" />\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\n    '
-              c = c.replace('<application', perms + '<application')
-              queries = '<queries>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"geo\" />\n        </intent>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"https\" />\n        </intent>\n    </queries>\n</manifest>'
-              c = c.replace('</manifest>', queries)
-              with open(m_path, 'w') as f: f.write(c)
-
-          # 2. 設定 minSdk 26 與 targetSdk 34
-          for b_path in ['android/app/build.gradle', 'android/app/build.gradle.kts']:
-              if os.path.exists(b_path):
-                  with open(b_path, 'r') as f: c = f.read()
-                  c = c.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 26')
-                  c = c.replace('minSdk = flutter.minSdkVersion', 'minSdk = 26')
-                  c = c.replace('targetSdkVersion flutter.targetSdkVersion', 'targetSdkVersion 34')
-                  c = c.replace('compileSdkVersion flutter.compileSdkVersion', 'compileSdkVersion 34')
-                  with open(b_path, 'w') as f: f.write(c)
-
-          # 3. 注入相容性規則，解決 geolocator 與 SDK 34 的相容問題
-          rb_path = 'android/build.gradle'
-          if os.path.exists(rb_path):
-              with open(rb_path, 'a') as f:
-                  f.write('''\nsubprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
-                }
-                compileSdkVersion 34
-            }
-        }
-    }
-}\n''')
-          "
+          echo "aW1wb3J0IG9zCm0gPSAnYW5kcm9pZC9hcHAvc3JjL21haW4vQW5kcm9pZE1hbmlmZXN0LnhtbCcKaWYgb3MucGF0aC5leGlzdHMobSk6CiAgICBjID0gb3BlbihtKS5yZWFkKCkKICAgIHAgPSAnPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5JTlRFUk5FVCIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uQUNDRVNTX0ZJTkVfTE9DQVRJT04iIC8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkFDQ0VTU19DT0FSU0VfTE9DQVRJT04iIC8+CiAgICAnCiAgICBjID0gYy5yZXBsYWNlKCc8YXBwbGljYXRpb24nLCBwICsgJzxhcHBsaWNhdGlvbicpCiAgICBxID0gJzxxdWVyaWVzPgogICAgICAgIDxpbnRlbnQ+PGFjdGlvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQuaW50ZW50LmFjdGlvbi5WSUVXIiAvPjxkYXRhIGFuZHJvaWQ6c2NoZW1lPSJnZW8iIC8+PC9pbnRlbnQ+CiAgICAgICAgPGludGVudD48YWN0aW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5pbnRlbnQuYWN0aW9uLlZJRVciIC8+PGRhdGEgYW5kcm9pZDpzY2hlbWU9Imh0dHBzIiAvPjwvaW50ZW50PgogICAgPC9xdWVyaWVzPgo8L21hbmlmZXN0PicKICAgIGMgPSBjLnJlcGxhY2UoJzwvbWFuaWZlc3Q+JywgcSkKICAgIG9wZW4obSwgJ3cnKS53cml0ZShjKQoKZm9yIGIgaW4gWydhbmRyb2lkL2FwcC9idWlsZC5ncmFkbGUnLCAnYW5kcm9pZC9hcHAvYnVpbGQuZ3JhZGxlLmt0cyddOgogICAgaWYgb3MucGF0aC5leGlzdHMoYik6CiAgICAgICAgYyA9IG9wZW4oYikucmVhZCgpLnJlcGxhY2UoJ21pblNka1ZlcnNpb24gZmx1dHRlci5taW5TZGtWZXJzaW9uJywgJ21pblNka1ZlcnNpb24gMjYnKS5yZXBsYWNlKCdtaW5TZGsgPSBmbHV0dGVyLm1pblNka1ZlcnNpb24nLCAnbWluU2RrID0gMjYnKQogICAgICAgIG9wZW4oYiwgJ3cnKS53cml0ZShjKQoKcmIgPSAnYW5kcm9pZC9idWlsZC5ncmFkbGUnCmlmIG9zLnBhdGguZXhpc3RzKHJiKToKICAgIG9wZW4ocmIsICdhJykud3JpdGUoJwpzdWJwcm9qZWN0cyB7IGFmdGVyRXZhbHVhdGUgeyBwcm9qZWN0IC0+IGlmIChwcm9qZWN0Lmhhc1Byb3BlcnR5KCJhbmRyb2lkIikpIHsgcHJvamVjdC5hbmRyb2lkIHsgY29tcGlsZVNka1ZlcnNpb24gMzQgfSB9IH0gfQonKQo=" | base64 -d | python3
 
       - name: Install Dependencies
         run: flutter pub get
