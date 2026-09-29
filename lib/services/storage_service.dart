@@ -20,7 +20,7 @@ class StorageService {
     return data.map((item) => ItineraryItem.fromJson(item)).toList();
   }
 
-  static Future<void> saveItinerary(List<ItineraryItem>> items) async {
+  static Future<void> saveItinerary(List<ItineraryItem> items) async {
     final prefs = await SharedPreferences.getInstance();
     items.sort((a, b) => a.startTime.compareTo(b.startTime));
     final encoded = items.map((e) => e.toJson()).toList();
