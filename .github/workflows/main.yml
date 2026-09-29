@@ -27,7 +27,7 @@ jobs:
       - name: Generate Clean Android Platform
         run: |
           rm -rf android
-          flutter create --platforms=android --org com.travelpilot .
+          flutter create --platforms=android --project-name travel_pilot --org com.travelpilot .
           python3 -c "
           import os
           m_path = 'android/app/src/main/AndroidManifest.xml'
