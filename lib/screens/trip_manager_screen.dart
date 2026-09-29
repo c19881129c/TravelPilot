@@ -116,7 +116,7 @@ class _TripManagerScreenState extends State<TripManagerScreen> {
                                   const Icon(Icons.access_time_rounded, color: Colors.amberAccent, size: 14),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '\${dateFormat.format(item.startTime)} - \${DateFormat('HH:mm').format(item.endTime)}',
+                                    "${dateFormat.format(item.startTime)} - ${DateFormat('HH:mm').format(item.endTime)}",
                                     style: const TextStyle(color: Colors.amberAccent, fontSize: 13),
                                   ),
                                 ],
