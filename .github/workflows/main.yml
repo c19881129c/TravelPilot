@@ -21,7 +21,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0'
+          flutter-version: '3.22.2'
           channel: 'stable'
 
       - name: Generate Clean Android Platform
@@ -30,6 +30,8 @@ jobs:
           flutter create --platforms=android --project-name travel_pilot --org com.travelpilot .
           python3 -c "
           import os
+
+          # 1. 補齊權限與地圖啟動設定
           m_path = 'android/app/src/main/AndroidManifest.xml'
           if os.path.exists(m_path):
               with open(m_path, 'r') as f: c = f.read()
@@ -38,12 +40,33 @@ jobs:
               queries = '<queries>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"geo\" />\n        </intent>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"https\" />\n        </intent>\n    </queries>\n</manifest>'
               c = c.replace('</manifest>', queries)
               with open(m_path, 'w') as f: f.write(c)
+
+          # 2. 設定 minSdk 26 與 targetSdk 34
           for b_path in ['android/app/build.gradle', 'android/app/build.gradle.kts']:
               if os.path.exists(b_path):
                   with open(b_path, 'r') as f: c = f.read()
                   c = c.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 26')
                   c = c.replace('minSdk = flutter.minSdkVersion', 'minSdk = 26')
+                  c = c.replace('targetSdkVersion flutter.targetSdkVersion', 'targetSdkVersion 34')
+                  c = c.replace('compileSdkVersion flutter.compileSdkVersion', 'compileSdkVersion 34')
                   with open(b_path, 'w') as f: f.write(c)
+
+          # 3. 注入相容性規則，解決 geolocator 與 SDK 34 的相容問題
+          rb_path = 'android/build.gradle'
+          if os.path.exists(rb_path):
+              with open(rb_path, 'a') as f:
+                  f.write('''\nsubprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    namespace project.group
+                }
+                compileSdkVersion 34
+            }
+        }
+    }
+}\n''')
           "
 
       - name: Install Dependencies
