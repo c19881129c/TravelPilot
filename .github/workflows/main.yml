@@ -24,6 +24,28 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
+      - name: Generate Clean Android Platform
+        run: |
+          rm -rf android
+          flutter create --platforms=android --org com.travelpilot .
+          python3 -c "
+          import os
+          m_path = 'android/app/src/main/AndroidManifest.xml'
+          if os.path.exists(m_path):
+              with open(m_path, 'r') as f: c = f.read()
+              perms = '<uses-permission android:name=\"android.permission.INTERNET\" />\n    <uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\" />\n    <uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\" />\n    '
+              c = c.replace('<application', perms + '<application')
+              queries = '<queries>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"geo\" />\n        </intent>\n        <intent>\n            <action android:name=\"android.intent.action.VIEW\" />\n            <data android:scheme=\"https\" />\n        </intent>\n    </queries>\n</manifest>'
+              c = c.replace('</manifest>', queries)
+              with open(m_path, 'w') as f: f.write(c)
+          for b_path in ['android/app/build.gradle', 'android/app/build.gradle.kts']:
+              if os.path.exists(b_path):
+                  with open(b_path, 'r') as f: c = f.read()
+                  c = c.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 26')
+                  c = c.replace('minSdk = flutter.minSdkVersion', 'minSdk = 26')
+                  with open(b_path, 'w') as f: f.write(c)
+          "
+
       - name: Install Dependencies
         run: flutter pub get
 
