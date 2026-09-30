@@ -52,8 +52,8 @@ class ContextEngine {
 
       final isWithin300m = dist != null && dist <= 300.0;
 
-      // Also if starting very soon (within 10 mins) and already within 300m
-      if (isDuringEvent || (isWithin300m && now.difference(item.startTime).inMinutes.abs() <= 30)) {
+      if (isDuringEvent ||
+          (isWithin300m && now.difference(item.startTime).inMinutes.abs() <= 30)) {
         return ContextState(
           mode: ContextMode.onSite,
           activeItem: item,
@@ -72,49 +72,27 @@ class ContextEngine {
       }
     }
 
+    // Whenever there is an upcoming event, ALWAYS show Transit / Next Destination mode
     if (upcoming != null) {
       final diff = upcoming.startTime.difference(now);
-
-      // Transit Mode: > 30 mins before next event (or between 30m and 120m)
-      if (diff.inMinutes > 30 && diff.inHours < 4) {
-        double? dist;
-        if (userPos != null) {
-          dist = LocationService.calculateDistance(
-            userPos.latitude,
-            userPos.longitude,
-            upcoming.lat,
-            upcoming.lng,
-          );
-        }
-        return ContextState(
-          mode: ContextMode.transit,
-          nextItem: upcoming,
-          timeUntilNext: diff,
-          distanceMeters: dist,
+      double? dist;
+      if (userPos != null) {
+        dist = LocationService.calculateDistance(
+          userPos.latitude,
+          userPos.longitude,
+          upcoming.lat,
+          upcoming.lng,
         );
       }
-
-      // If imminent (< 30 min before), treat as transit with urgency
-      if (diff.inMinutes <= 30) {
-        double? dist;
-        if (userPos != null) {
-          dist = LocationService.calculateDistance(
-            userPos.latitude,
-            userPos.longitude,
-            upcoming.lat,
-            upcoming.lng,
-          );
-        }
-        return ContextState(
-          mode: ContextMode.transit,
-          nextItem: upcoming,
-          timeUntilNext: diff,
-          distanceMeters: dist,
-        );
-      }
+      return ContextState(
+        mode: ContextMode.transit,
+        nextItem: upcoming,
+        timeUntilNext: diff,
+        distanceMeters: dist,
+      );
     }
 
-    // 3. Free Time Mode: No events within next 2 hours
+    // 3. If all events have passed, return clean completion state
     return ContextState(mode: ContextMode.freeTime);
   }
 }
