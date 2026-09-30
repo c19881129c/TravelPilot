@@ -21,7 +21,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<ItineraryItem> _items = [];
   Position? _currentPosition;
-  ContextState _contextState = ContextState(mode: ContextMode.freeTime);
+  ContextState _contextState = ContextState(mode: ContextMode.allCompleted);
   bool _loading = true;
   Timer? _tickerTimer;
 
@@ -29,7 +29,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _initDashboard();
-    // Auto-refresh countdown and context state every 60 seconds
     _tickerTimer = Timer.periodic(const Duration(seconds: 60), (_) => _evaluate());
   }
 
@@ -68,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFF030712), // Deep pitch black for ultimate contrast
+      backgroundColor: const Color(0xFF030712),
       drawer: const VaultDrawer(),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
@@ -78,14 +77,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           tooltip: 'Open Vault',
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
-        title: const Text(
-          'TRAVELPILOT',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2.0,
-            color: Colors.white,
-          ),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'TRAVELPILOT',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+                color: Colors.white,
+              ),
+            ),
+            Text(
+              'v1.0.1+2',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.cyanAccent,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
@@ -120,10 +133,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Dynamic Context Card
                     ContextCard(contextState: _contextState),
                     const SizedBox(height: 28),
-                    // Quick Action Shortcut Strip
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -156,7 +167,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Upcoming events summary list
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
