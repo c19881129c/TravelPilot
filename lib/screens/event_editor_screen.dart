@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../models/itinerary_item.dart';
 import '../services/storage_service.dart';
+import 'map_picker_screen.dart';
 
 class EventEditorScreen extends StatefulWidget {
   final ItineraryItem? item;
@@ -101,6 +102,34 @@ class _EventEditorScreenState extends State<EventEditorScreen> {
     });
   }
 
+  Future<void> _openMapPicker() async {
+    final currentLat = double.tryParse(_latCtrl.text.trim()) ?? 43.0605;
+    final currentLng = double.tryParse(_lngCtrl.text.trim()) ?? 141.3564;
+
+    final result = await Navigator.push<LocationPickResult>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => MapPickerScreen(
+          initialLat: currentLat,
+          initialLng: currentLng,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _latCtrl.text = result.lat.toStringAsFixed(6);
+        _lngCtrl.text = result.lng.toStringAsFixed(6);
+        if (result.address.isNotEmpty) {
+          _addressCtrl.text = result.address;
+        }
+        if (_titleCtrl.text.isEmpty && result.placeName.isNotEmpty) {
+          _titleCtrl.text = result.placeName;
+        }
+      });
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -151,7 +180,7 @@ class _EventEditorScreenState extends State<EventEditorScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildTextField('Event Title', _titleCtrl, isRequired: true),
+              _buildTextField('Event Title (行程名稱)', _titleCtrl, isRequired: true),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -173,19 +202,43 @@ class _EventEditorScreenState extends State<EventEditorScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+
+              // 地圖選點與搜尋按鈕
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E293B),
+                    foregroundColor: Colors.cyanAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: const BorderSide(color: Colors.cyanAccent, width: 1.5),
+                    ),
+                  ),
+                  onPressed: _openMapPicker,
+                  icon: const Icon(Icons.map_rounded, color: Colors.cyanAccent, size: 24),
+                  label: const Text(
+                    '地圖選點 / 搜尋地點',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _buildTextField('Latitude', _latCtrl, isNumber: true)),
+                  Expanded(child: _buildTextField('Latitude (緯度)', _latCtrl, isNumber: true)),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildTextField('Longitude', _lngCtrl, isNumber: true)),
+                  Expanded(child: _buildTextField('Longitude (經度)', _lngCtrl, isNumber: true)),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildTextField('Local Address (Taxi / Kanji)', _addressCtrl),
+              _buildTextField('Local Address (當地地址/日文地址)', _addressCtrl),
               const SizedBox(height: 16),
-              _buildTextField('Booking Reference', _bookingRefCtrl),
+              _buildTextField('Booking Reference (預約編號)', _bookingRefCtrl),
               const SizedBox(height: 16),
-              _buildTextField('Notes & Instructions', _notesCtrl, maxLines: 3),
+              _buildTextField('Notes & Instructions (備註與提醒)', _notesCtrl, maxLines: 3),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
