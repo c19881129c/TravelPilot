@@ -22,6 +22,11 @@ class TravelPilotApp extends StatelessWidget {
           secondary: Colors.cyanAccent,
           surface: Color(0xFF0F172A),
         ),
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Colors.amberAccent,
+          selectionColor: Color(0x66FFD700),
+          selectionHandleColor: Colors.amberAccent,
+        ),
         fontFamily: 'Roboto',
       ),
       home: const DashboardScreen(),
