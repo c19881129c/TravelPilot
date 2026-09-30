@@ -52,7 +52,7 @@ class WeatherData {
       temp: (map['temp'] as num?)?.toDouble() ?? 20.0,
       feelsLike: (map['feelsLike'] as num?)?.toDouble() ?? (map['temp'] as num?)?.toDouble() ?? 20.0,
       humidity: (map['humidity'] as num?)?.toInt() ?? 60,
-      windSpeed: (wind['speed'] as num?)?.toDouble() ?? 2.5,
+      windSpeed: (map['windspeed'] as num?)?.toDouble() ?? 2.5,
       description: map['description'] ?? '晴朗',
       icon: map['icon'] ?? '01d',
       rainPop: (map['rainPop'] as num?)?.toInt() ?? 0,
