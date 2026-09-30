@@ -21,7 +21,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<ItineraryItem> _items = [];
   Position? _currentPosition;
-  ContextState _contextState = ContextState(mode: ContextMode.allCompleted);
+  ContextState _contextState = ContextState(mode: ContextMode.freeTime);
   bool _loading = true;
   Timer? _tickerTimer;
 
