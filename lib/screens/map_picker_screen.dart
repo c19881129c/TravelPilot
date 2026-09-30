@@ -267,7 +267,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.amberAccent, width: 2),
                 boxShadow: const [
-                  BoxShadow(color: Colors.black88, blurRadius: 16, offset: Offset(0, 6)),
+                  BoxShadow(color: Colors.black87, blurRadius: 16, offset: Offset(0, 6)),
                 ],
               ),
               child: Column(
