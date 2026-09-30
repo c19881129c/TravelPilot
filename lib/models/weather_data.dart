@@ -2,6 +2,9 @@ import 'dart:convert';
 
 class WeatherData {
   final double temp;
+  final double feelsLike;
+  final int humidity;
+  final double windSpeed;
   final String description;
   final String icon;
   final double lat;
@@ -10,6 +13,9 @@ class WeatherData {
 
   WeatherData({
     required this.temp,
+    required this.feelsLike,
+    required this.humidity,
+    required this.windSpeed,
     required this.description,
     required this.icon,
     required this.lat,
@@ -24,6 +30,9 @@ class WeatherData {
   Map<String, dynamic> toMap() {
     return {
       'temp': temp,
+      'feelsLike': feelsLike,
+      'humidity': humidity,
+      'windSpeed': windSpeed,
       'description': description,
       'icon': icon,
       'lat': lat,
@@ -34,12 +43,15 @@ class WeatherData {
 
   factory WeatherData.fromMap(Map<String, dynamic> map) {
     return WeatherData(
-      temp: (map['temp'] as num).toDouble(),
-      description: map['description'] ?? '',
-      icon: map['icon'] ?? '',
-      lat: (map['lat'] as num).toDouble(),
-      lng: (map['lng'] as num).toDouble(),
-      fetchedAt: DateTime.parse(map['fetchedAt']),
+      temp: (map['temp'] as num?)?.toDouble() ?? 20.0,
+      feelsLike: (map['feelsLike'] as num?)?.toDouble() ?? (map['temp'] as num?)?.toDouble() ?? 20.0,
+      humidity: (map['humidity'] as num?)?.toInt() ?? 60,
+      windSpeed: (map['windSpeed'] as num?)?.toDouble() ?? 2.5,
+      description: map['description'] ?? '晴朗',
+      icon: map['icon'] ?? '01d',
+      lat: (map['lat'] as num?)?.toDouble() ?? 0.0,
+      lng: (map['lng'] as num?)?.toDouble() ?? 0.0,
+      fetchedAt: map['fetchedAt'] != null ? DateTime.parse(map['fetchedAt']) : DateTime.now(),
     );
   }
 
