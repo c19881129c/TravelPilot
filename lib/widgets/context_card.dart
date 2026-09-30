@@ -60,34 +60,35 @@ class ContextCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.amberAccent,
-                  borderRadius: BorderRadius.circular(8),
+          // 第一排：目的地標籤
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.amberAccent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.directions_transit_rounded, color: Colors.black, size: 18),
+                SizedBox(width: 6),
+                Text(
+                  'NEXT DESTINATION',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    letterSpacing: 1.0,
+                  ),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.directions_transit_rounded, color: Colors.black, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'NEXT DESTINATION',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              WeatherCard(lat: item.lat, lng: item.lng, locationTitle: item.title),
-            ],
+              ],
+            ),
           ),
+          const SizedBox(height: 14),
+
+          // 第二排：整列獨立的天氣與降雨機率橫條（直式專屬，絕不被截斷）
+          WeatherCard(lat: item.lat, lng: item.lng, locationTitle: item.title),
+
           const SizedBox(height: 20),
           const Text(
             'COUNTDOWN',
@@ -166,34 +167,34 @@ class ContextCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.cyanAccent,
-                  borderRadius: BorderRadius.circular(8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.cyanAccent,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.location_on_rounded, color: Colors.black, size: 18),
+                SizedBox(width: 6),
+                Text(
+                  'ON-SITE MODE',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                    letterSpacing: 1.0,
+                  ),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.location_on_rounded, color: Colors.black, size: 18),
-                    SizedBox(width: 6),
-                    Text(
-                      'ON-SITE MODE',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              WeatherCard(lat: item.lat, lng: item.lng, locationTitle: item.title),
-            ],
+              ],
+            ),
           ),
+          const SizedBox(height: 14),
+
+          // 第二排：整列獨立的天氣與降雨橫條
+          WeatherCard(lat: item.lat, lng: item.lng, locationTitle: item.title),
+
           const SizedBox(height: 20),
           Text(
             item.title,
