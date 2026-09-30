@@ -9,8 +9,8 @@ class ContextCard extends StatelessWidget {
   const ContextCard({Key? key, required this.contextState}) : super(key: key);
 
   Future<void> _launchMaps(String query) async {
-    final uri = Uri.parse('geo:0,0?q=\${Uri.encodeComponent(query)}');
-    final webUri = Uri.parse('https://www.google.com/maps/search/?api=1&query=\${Uri.encodeComponent(query)}');
+    final uri = Uri.parse("geo:0,0?q=${Uri.encodeComponent(query)}");
+    final webUri = Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}");
     try {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
@@ -30,16 +30,25 @@ class ContextCard extends StatelessWidget {
       case ContextMode.onSite:
         return _buildOnSiteMode(context);
       case ContextMode.freeTime:
-        return _buildFreeTimeMode(context);
+        return _buildAllCompletedMode(context);
     }
   }
 
   Widget _buildTransitMode(BuildContext context) {
     final item = contextState.nextItem!;
     final diff = contextState.timeUntilNext ?? const Duration(minutes: 45);
-    final hours = diff.inHours;
+    final days = diff.inDays;
+    final hours = diff.inHours % 24;
     final minutes = diff.inMinutes % 60;
-    final countdownStr = hours > 0 ? '\${hours}h \${minutes}m' : '\${minutes}m';
+
+    String countdownStr;
+    if (days > 0) {
+      countdownStr = "${days}d ${hours}h ${minutes}m";
+    } else if (hours > 0) {
+      countdownStr = "${hours}h ${minutes}m";
+    } else {
+      countdownStr = "${minutes}m";
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -65,7 +74,7 @@ class ContextCard extends StatelessWidget {
                     Icon(Icons.directions_transit_rounded, color: Colors.black, size: 18),
                     SizedBox(width: 6),
                     Text(
-                      'TRANSIT MODE',
+                      'NEXT DESTINATION',
                       style: TextStyle(
                         color: Colors.black,
                         fontWeight: FontWeight.w900,
@@ -81,7 +90,7 @@ class ContextCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const Text(
-            'NEXT DESTINATION IN',
+            'COUNTDOWN',
             style: TextStyle(
               color: Colors.white54,
               fontSize: 14,
@@ -93,7 +102,7 @@ class ContextCard extends StatelessWidget {
           Text(
             countdownStr,
             style: const TextStyle(
-              fontSize: 54,
+              fontSize: 50,
               fontWeight: FontWeight.w900,
               color: Colors.amberAccent,
               letterSpacing: -1.0,
@@ -127,7 +136,7 @@ class ContextCard extends StatelessWidget {
                 ),
                 elevation: 4,
               ),
-              onPressed: () => _launchMaps('\${item.lat},\${item.lng}'),
+              onPressed: () => _launchMaps("${item.lat},${item.lng}"),
               icon: const Icon(Icons.navigation_rounded, size: 28),
               label: const Text(
                 'NAVIGATE IN GOOGLE MAPS',
@@ -196,7 +205,6 @@ class ContextCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Large High-Contrast Booking Ref
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(18),
@@ -231,7 +239,6 @@ class ContextCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          // Local Address for Taxi / Locals
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -274,7 +281,7 @@ class ContextCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
-                'Notes: \${item.notes}',
+                'Notes: ${item.notes}',
                 style: const TextStyle(
                   color: Colors.amberAccent,
                   fontSize: 15,
@@ -288,7 +295,7 @@ class ContextCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFreeTimeMode(BuildContext context) {
+  Widget _buildAllCompletedMode(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF0F172A),
@@ -296,110 +303,38 @@ class ContextCard extends StatelessWidget {
         border: Border.all(color: Colors.white24, width: 1.5),
       ),
       padding: const EdgeInsets.all(24),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.greenAccent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.coffee_rounded, color: Colors.black, size: 18),
-                SizedBox(width: 6),
-                Text(
-                  'FREE TIME MODE',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'Explore & Recharge',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'No itinerary events scheduled within the next 2 hours. Discover local spots nearby.',
-            style: TextStyle(fontSize: 16, color: Colors.white70, height: 1.4),
-          ),
-          const SizedBox(height: 24),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: SizedBox(
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E293B),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: const BorderSide(color: Colors.cyanAccent),
-                      ),
-                    ),
-                    onPressed: () => _launchMaps('cafes near me'),
-                    icon: const Icon(Icons.local_cafe_rounded, color: Colors.cyanAccent),
-                    label: const Text(
-                      'Nearby Cafes',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: SizedBox(
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E293B),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: const BorderSide(color: Colors.amberAccent),
-                      ),
-                    ),
-                    onPressed: () => _launchMaps('public restroom near me'),
-                    icon: const Icon(Icons.wc_rounded, color: Colors.amberAccent),
-                    label: const Text(
-                      'Restrooms',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+              Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 24),
+              SizedBox(width: 8),
+              Text(
+                'ALL EVENTS COMPLETED',
+                style: TextStyle(
+                  color: Colors.greenAccent,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                  letterSpacing: 1.0,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white70,
-                side: const BorderSide(color: Colors.white24),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              onPressed: () => _launchMaps('convenience store near me'),
-              icon: const Icon(Icons.storefront_rounded),
-              label: const Text('Convenience Stores (7-Eleven / Lawson)'),
+          SizedBox(height: 16),
+          Text(
+            'Enjoy Your Free Journey!',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
             ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'All scheduled itinerary items for this trip are finished. Tap the calendar icon in the top right to manage or add new events.',
+            style: TextStyle(fontSize: 15, color: Colors.white70, height: 1.4),
           ),
         ],
       ),
