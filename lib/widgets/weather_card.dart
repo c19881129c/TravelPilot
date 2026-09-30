@@ -49,7 +49,23 @@ class _WeatherCardState extends State<WeatherCard> {
     }
   }
 
-  void _showWeatherDetails() {
+  IconData _getWeatherIcon() {
+    if (_weather == null) return Icons.cloud_outlined;
+    final desc = _weather!.description;
+    final pop = _weather!.rainPop;
+    if (pop >= 60 || desc.contains('雨') || desc.contains('陣雨')) {
+      return Icons.grain_rounded;
+    }
+    if (desc.contains('雲') || desc.contains('陰')) {
+      return Icons.cloud_rounded;
+    }
+    return Icons.wb_sunny_rounded;
+  }
+
+  void _showWeatherDetails() async {
+    final callCount = await WeatherService.getTodayCallCount();
+
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF0F172A),
@@ -59,6 +75,8 @@ class _WeatherCardState extends State<WeatherCard> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
+            final isRainy = _weather != null && (_weather!.rainPop >= 50 || _weather!.description.contains('雨'));
+
             return Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
@@ -70,7 +88,11 @@ class _WeatherCardState extends State<WeatherCard> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.wb_sunny_rounded, color: Colors.amberAccent, size: 28),
+                          Icon(
+                            _getWeatherIcon(),
+                            color: isRainy ? Colors.lightBlueAccent : Colors.amberAccent,
+                            size: 28,
+                          ),
                           const SizedBox(width: 10),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +124,19 @@ class _WeatherCardState extends State<WeatherCard> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white10,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "今日呼叫額度: $callCount / ${WeatherService.maxDailyCalls} 次 (配額保護中)",
+                      style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   if (_weather != null) ...[
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -119,15 +153,48 @@ class _WeatherCardState extends State<WeatherCard> {
                         const SizedBox(width: 16),
                         Text(
                           _weather!.description,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.amberAccent,
+                            color: isRainy ? Colors.lightBlueAccent : Colors.amberAccent,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isRainy ? Colors.lightBlueAccent.withOpacity(0.15) : const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isRainy ? Colors.lightBlueAccent : Colors.white12,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.umbrella_rounded,
+                            color: isRainy ? Colors.lightBlueAccent : Colors.amberAccent,
+                            size: 22,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              isRainy
+                                  ? "降雨機率 ${_weather!.rainPop}%：建議隨身攜帶雨傘！"
+                                  : "降雨機率 ${_weather!.rainPop}%：天氣穩定，適合戶外活動",
+                              style: TextStyle(
+                                color: isRainy ? Colors.lightBlueAccent : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -167,11 +234,11 @@ class _WeatherCardState extends State<WeatherCard> {
                       ),
                       onPressed: () async {
                         final webUrl = Uri.parse(
-                            "https://www.google.com/search?q=${Uri.encodeComponent("${widget.locationTitle} 天氣")}");
+                            "https://www.google.com/search?q=${Uri.encodeComponent("${widget.locationTitle} 天氣 降雨機率")}");
                         await launchUrl(webUrl, mode: LaunchMode.externalApplication);
                       },
                       icon: const Icon(Icons.open_in_browser_rounded),
-                      label: const Text('在 Google 查看完整週氣象預報', style: TextStyle(fontWeight: FontWeight.bold)),
+                      label: const Text('在 Google 查看完整週氣象與雷達回波', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -199,58 +266,89 @@ class _WeatherCardState extends State<WeatherCard> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white10,
-          borderRadius: BorderRadius.circular(10),
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: const Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
               width: 14,
               height: 14,
               child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.amberAccent),
             ),
-            SizedBox(width: 6),
-            Text('更新中...', style: TextStyle(color: Colors.white60, fontSize: 12)),
+            SizedBox(width: 8),
+            Text('正在同步即時天氣與降雨機率...', style: TextStyle(color: Colors.white60, fontSize: 13)),
           ],
         ),
       );
     }
 
+    final isRainy = _weather != null && (_weather!.rainPop >= 50 || _weather!.description.contains('雨'));
+
     return InkWell(
       onTap: _showWeatherDetails,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _weather != null ? Colors.cyanAccent.withOpacity(0.6) : Colors.white24,
-            width: 1,
+            color: isRainy ? Colors.lightBlueAccent : Colors.cyanAccent.withOpacity(0.4),
+            width: 1.5,
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              _weather != null ? Icons.wb_sunny_rounded : Icons.cloud_outlined,
-              color: _weather != null ? Colors.amberAccent : Colors.white54,
-              size: 16,
+              _getWeatherIcon(),
+              color: isRainy ? Colors.lightBlueAccent : Colors.amberAccent,
+              size: 22,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 10),
             Text(
-              _weather != null ? "${_weather!.temp.toStringAsFixed(0)}°C" : "天氣詳情",
-              style: TextStyle(
-                color: _weather != null ? Colors.white : Colors.white70,
-                fontSize: 13,
+              _weather != null
+                  ? "${_weather!.temp.toStringAsFixed(0)}°C  ${_weather!.description}"
+                  : "點擊載入即時天氣",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.touch_app_rounded, color: Colors.cyanAccent, size: 14),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: isRainy ? Colors.lightBlueAccent.withOpacity(0.2) : Colors.white10,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.umbrella_rounded,
+                    color: isRainy ? Colors.lightBlueAccent : Colors.white60,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _weather != null ? "${_weather!.rainPop}%" : "--%",
+                    style: TextStyle(
+                      color: isRainy ? Colors.lightBlueAccent : Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.chevron_right_rounded, color: Colors.cyanAccent, size: 20),
           ],
         ),
       ),
