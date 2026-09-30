@@ -275,12 +275,21 @@ class _EventEditorScreenState extends State<EventEditorScreen> {
       maxLines: maxLines,
       keyboardType: isNumber ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
       style: const TextStyle(color: Colors.white, fontSize: 16),
+      cursorColor: Colors.amberAccent,
+      cursorWidth: 2.5,
+      showCursor: true,
+      enableInteractiveSelection: true,
       validator: isRequired ? (v) => (v == null || v.trim().isEmpty) ? 'Required' : null : null,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white60),
         filled: true,
         fillColor: const Color(0xFF1E293B),
+        suffixIcon: IconButton(
+          icon: const Icon(Icons.clear_rounded, color: Colors.white30, size: 20),
+          tooltip: '清除文字',
+          onPressed: () => controller.clear(),
+        ),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
